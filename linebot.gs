@@ -13,8 +13,12 @@ const to          = "Uac745d6b66691b8e82ed7c52e69cec91";
 //  4.検索対象の郵便番号
 const POSTNUM     = "174-0063";
 
+
 /****************************************************************************************** 
   メッセージ受信時の動作
+  以下は機能の一覧
+  ・ヘルプ      機能の一覧の表示
+  ・天気        "天気"が入力されたとき天気の情報を返信する
 *******************************************************************************************/
 
 function doPost(e) {
@@ -22,32 +26,21 @@ function doPost(e) {
   var replyToken = JSON.parse(e.postData.contents).events[0].replyToken;
   // ユーザーのメッセージを取得
   var userMessage = JSON.parse(e.postData.contents).events[0].message.text;
-  // 応答メッセージ用のAPI URL
-  var url = 'https://api.line.me/v2/bot/message/reply';
 
-  UrlFetchApp.fetch(url, {
-    'headers': {
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Authorization': 'Bearer ' + ACCESSTOKEN,
-    },
-    'method': 'post',
-    'payload': JSON.stringify({
-      'replyToken': replyToken,
-      'messages': [{
-        'type': 'text',
-        'text': userMessage,
-      }],
-    }),
-    });
-  return ContentService.createTextOutput(JSON.stringify({'content': 'post ok'})).setMimeType(ContentService.MimeType.JSON);
+  //  メッセージが"天気"の時
+  if (userMessage == "天気") {
+    createWeatherMessage(e);
+  }
+
 }
 
-//  以下，天気の取得
+
 /****************************************************************************************** 
-  天気情報の取得
+  メッセージの送信（後で名前変更必要）
+  @text               送信メッセージの内容　JSON形式でまとめる必要あり
 *******************************************************************************************/
 
-function pushWeatherMessage(text) {
+function pushMessage(text) {
 //実際にメッセージを送信する関数を作成します。
 //メッセージを送信(push)する時に必要なurlでこれは、皆同じなので、修正する必要ありません。
 //この関数は全て基本コピペで大丈夫です。
@@ -73,6 +66,11 @@ function pushWeatherMessage(text) {
   return UrlFetchApp.fetch(url, options);
 }
 
+
+/****************************************************************************************** 
+  天気情報のメッセージ生成
+  @e                  気にしたことない
+*******************************************************************************************/
 
 function createWeatherMessage(e) {
   var response = getWeather(POSTNUM);
@@ -438,8 +436,12 @@ function createWeatherMessage(e) {
               "text": "天気情報の取得に失敗しました．"
           }]
   }
-  pushWeatherMessage(message);
+  pushMessage(message);
 }
+
+/****************************************************************************************** 
+  天気情報の取得
+*******************************************************************************************/
 
 function getWeather(e) {
   try {
